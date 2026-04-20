@@ -269,13 +269,24 @@ function animateBubbles(){ bubbles.forEach(b=>{ b.x+=b.dx;b.y+=b.dy;
   if(b.x<0)b.x=width;if(b.x>width)b.x=0;
   b.el.style.left=b.x+'px';b.el.style.top=b.y+'px';
 }); requestAnimationFrame(animateBubbles); }
-animateBubbles();
+animateBubbles();// 啟動動畫
+// --- 把這段貼在這裡 ---
+document.addEventListener('DOMContentLoaded', () => {
+    const h2Title = document.querySelector('h2');
+    if (h2Title) {
+        h2Title.textContent = `📝 第 ${currentCourseId} 堂課程報到`;
+    }
+});
+//
 window.addEventListener('resize',()=>{width=window.innerWidth;height=window.innerHeight;});
 
 // ------------------------
 // 設定與資料處理
 // ------------------------
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzsgoToQNLOvGEd6AXLLlQmwBVht45IGkk1dbGDRq9xXSZ7EmfGNHbGjI-ViDwmRBVW/exec";
+const urlParams = new URLSearchParams(window.location.search);
+const currentCourseId = urlParams.get('course_id') || '未知課程';
+const isGuestAllowed = urlParams.get('guest') === 'true';
 const tableBody = document.getElementById('tableBody');
 const countdownEl = document.getElementById('countdown');
 const statsEl = document.getElementById('stats');
@@ -307,8 +318,15 @@ form.addEventListener('submit', async e=>{
   const external = form.querySelector('[name="external"]').value;
   const remark = form.querySelector('[name="remark"]').value;
 
-  const data = new URLSearchParams({identity, internal, external, remark});
-
+  const data= new URLSearchParams({
+    identity: identity, 
+    internal: internal, 
+    external: external, 
+    remark: remark,
+    course_id: currentCourseId,  // 告訴 GAS 這是第幾堂課
+    allow_guest: isGuestAllowed  // 告訴 GAS 這堂課開不開放旁聽
+  });
+  //
   try{
     const res = await fetch(WEB_APP_URL, { method:'POST', body:data });
     const result = await res.json();
